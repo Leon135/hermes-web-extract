@@ -38,7 +38,6 @@ def _build_client(settings: Settings) -> httpx.AsyncClient:
         headers={
             "User-Agent": settings.user_agent,
             "Accept": "text/html,application/xhtml+xml,application/pdf,text/plain,*/*;q=0.8",
-            "Accept-Encoding": "gzip, br",
             "Accept-Language": "en-US,en;q=0.9",
         },
         max_redirects=0,
