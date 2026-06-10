@@ -6,8 +6,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+COPY requirements.txt pyproject.toml ./
+COPY src/ ./src/
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
+    && pip install --no-cache-dir --prefix=/install --no-deps .
 
 
 # Stage 2: runtime — no compiler, smaller attack surface
