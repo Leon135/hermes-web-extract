@@ -3,7 +3,6 @@
 import logging
 
 import trafilatura
-import trafilatura.settings
 from trafilatura.metadata import extract_metadata
 
 from hermes_local_web_extract.extractors.base import ExtractionResult
@@ -59,7 +58,8 @@ class TrafilaturaExtractor:
                 result.title = meta.title
                 result.author = meta.author
                 result.date = meta.date
-                result.sitename = meta.sitename if hasattr(meta, "sitename") else None
+                # Use the canonical ExtractionResult field name (site_name), not a dynamic attr
+                result.site_name = getattr(meta, "sitename", None)
         except Exception as exc:
             logger.debug("trafilatura metadata error: %s", exc)
 

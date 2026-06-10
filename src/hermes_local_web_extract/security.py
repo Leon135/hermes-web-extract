@@ -2,7 +2,7 @@
 
 import ipaddress
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from hermes_local_web_extract.errors import BlockedAddressError, InvalidURLError
 
@@ -46,6 +46,10 @@ def _resolve_and_check(hostname: str, allow_private: bool) -> None:
         results = socket.getaddrinfo(hostname, None, proto=socket.IPPROTO_TCP)
     except socket.gaierror as exc:
         raise InvalidURLError(f"Could not resolve hostname '{hostname}': {exc}") from exc
+
+    if not results:
+        # Empty result list means no addresses — treat as unresolvable rather than silently passing.
+        raise InvalidURLError(f"Hostname '{hostname}' resolved to no addresses.")
 
     for _family, _type, _proto, _canonname, sockaddr in results:
         ip_str = sockaddr[0]
@@ -107,6 +111,17 @@ def validate_url(url: str, allow_private: bool = False) -> str:
         _resolve_and_check(hostname, allow_private)
 
     return url
+
+
+def resolve_redirect(location: str, current_url: str) -> str:
+    """
+    Resolve a Location header value against the current URL.
+
+    Handles relative (/path), protocol-relative (//host/path), and absolute URLs.
+    Must be called before validate_redirect_url so that relative redirects get a
+    full scheme+host before SSRF validation.
+    """
+    return urljoin(current_url, location)
 
 
 def validate_redirect_url(url: str, allow_private: bool = False) -> str:

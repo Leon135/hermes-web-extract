@@ -51,9 +51,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/gopalasubramanium/hermes-local-web-extract"
-Repository = "https://github.com/gopalasubramanium/hermes-local-web-extract"
-Issues = "https://github.com/gopalasubramanium/hermes-local-web-extract/issues"
+Homepage = "https://github.com/gopalasubramanium/web_extract"
+Repository = "https://github.com/gopalasubramanium/web_extract"
+Issues = "https://github.com/gopalasubramanium/web_extract/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

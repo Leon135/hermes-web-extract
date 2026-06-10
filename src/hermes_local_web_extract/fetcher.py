@@ -13,7 +13,11 @@ from hermes_local_web_extract.errors import (
     FetchTimeoutError,
     InvalidURLError,
 )
-from hermes_local_web_extract.security import validate_redirect_url, validate_url
+from hermes_local_web_extract.security import (
+    resolve_redirect,
+    validate_redirect_url,
+    validate_url,
+)
 
 
 @dataclass
@@ -49,11 +53,12 @@ async def fetch(url: str, settings: Settings, timeout_override: int | None = Non
     max_body = settings.max_body_bytes
     max_redirects = settings.max_redirects
 
-    # Clamp timeout to configured maximum
-    timeout_secs = min(
-        timeout_override or settings.timeout_seconds,
-        settings.max_timeout_seconds,
-    )
+    # Explicit None check so that timeout_override=0 is not silently ignored.
+    # (ge=1 on the model prevents 0 via API, but defence-in-depth here.)
+    if timeout_override is not None:
+        timeout_secs = min(timeout_override, settings.max_timeout_seconds)
+    else:
+        timeout_secs = min(settings.timeout_seconds, settings.max_timeout_seconds)
 
     validated_url = validate_url(url, allow_private=allow_private)
     current_url = validated_url
@@ -70,9 +75,9 @@ async def fetch(url: str, settings: Settings, timeout_override: int | None = Non
                     ),
                 )
             except httpx.TimeoutException as exc:
-                raise FetchTimeoutError(
-                    f"Request to {current_url} timed out after {timeout_secs}s."
-                ) from exc
+                # Omit current_url from the message — it may be a redirect target
+                # containing tokens or sensitive path components.
+                raise FetchTimeoutError(f"Request timed out after {timeout_secs}s.") from exc
             except httpx.RequestError as exc:
                 raise FetchError(f"Network error fetching URL: {exc}") from exc
 
@@ -83,14 +88,21 @@ async def fetch(url: str, settings: Settings, timeout_override: int | None = Non
                 if not location:
                     raise FetchError("Redirect with no Location header.")
 
+                # Resolve relative Location headers (e.g. "/path", "//host/path") against
+                # current_url before SSRF validation. Relative redirects are valid HTTP and
+                # common in practice; without this they would be rejected as malformed URLs.
+                resolved_location = resolve_redirect(location, current_url)
+
                 # Re-validate each redirect target for SSRF
                 try:
-                    location = validate_redirect_url(location, allow_private=allow_private)
+                    resolved_location = validate_redirect_url(
+                        resolved_location, allow_private=allow_private
+                    )
                 except (InvalidURLError, BlockedAddressError):
                     raise
 
                 redirects_followed += 1
-                current_url = location
+                current_url = resolved_location
                 continue
 
             # Non-redirect: read body with size limit

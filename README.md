@@ -29,7 +29,7 @@ See [docs/limitations.md](docs/limitations.md) for the full list.
 
 ```bash
 git clone https://github.com/gopalasubramanium/web_extract.git
-cd hermes-local-web-extract
+cd web_extract
 cp .env.example .env
 docker compose up -d
 curl http://localhost:8090/healthz
@@ -265,7 +265,7 @@ Scanned PDFs (no embedded text) are not supported. Video, audio, binary formats 
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Run tests with `pytest tests/ -v`. All 56 tests must pass, no internet required.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Run tests with `pytest tests/ -v`. All 71 tests must pass, no internet required.
 
 ---
 

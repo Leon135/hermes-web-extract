@@ -9,7 +9,7 @@
 
 ```bash
 git clone https://github.com/gopalasubramanium/web_extract.git
-cd hermes-local-web-extract
+cd web_extract
 cp .env.example .env
 docker compose up -d
 curl http://localhost:8090/healthz
@@ -21,7 +21,7 @@ The service starts on port 8090. To change the port, edit `LOCAL_EXTRACT_PORT` i
 
 ```bash
 git clone https://github.com/gopalasubramanium/web_extract.git
-cd hermes-local-web-extract
+cd web_extract
 bash install.sh
 ```
 
@@ -33,7 +33,7 @@ Requires Python 3.12+.
 
 ```bash
 git clone https://github.com/gopalasubramanium/web_extract.git
-cd hermes-local-web-extract
+cd web_extract
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt -e .

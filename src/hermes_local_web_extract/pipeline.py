@@ -97,7 +97,7 @@ async def run_extraction(request: ExtractRequest, settings: Settings) -> Extract
         extraction = PDFExtractor().extract(fetch_result.content, fetch_result.final_url, ct)
 
     elif _is_html(ct):
-        extraction = _extract_html(fetch_result, request, settings, warnings)
+        extraction = await _extract_html_async(fetch_result, request, settings, warnings)
 
     elif _is_text(ct):
         text = fetch_result.content.decode("utf-8", errors="replace")
@@ -138,7 +138,7 @@ async def run_extraction(request: ExtractRequest, settings: Settings) -> Extract
         title=extraction.title,
         author=extraction.author,
         date=extraction.date,
-        site_name=getattr(extraction, "site_name", None) or getattr(extraction, "sitename", None),
+        site_name=extraction.site_name,
         language=extraction.language,
         content_type=ct,
         status_code=fetch_result.status_code,
@@ -172,12 +172,18 @@ async def run_extraction(request: ExtractRequest, settings: Settings) -> Extract
     return response
 
 
-def _extract_html(
+async def _extract_html_async(
     fetch_result: FetchResult,
     request: ExtractRequest,
     settings: Settings,
     warnings: list[str],
 ) -> ExtractionResult:
+    """
+    Async HTML extraction pipeline: trafilatura → readability → fallback → browser.
+
+    Must be async so that the optional Crawl4AI browser path can be properly awaited
+    rather than fire-and-forget via asyncio.create_task.
+    """
     content = fetch_result.content
     url = fetch_result.final_url
     ct = fetch_result.content_type
@@ -196,28 +202,20 @@ def _extract_html(
 
     warnings.append("Readability extractor returned poor result; trying last-resort fallback.")
 
-    # Browser fallback if render_js requested and browser enabled
+    # Browser fallback: properly awaited now that this function is async
     if request.render_js in (RenderJs.auto, RenderJs.always) and settings.browser_enabled:
-        import asyncio
-
         from hermes_local_web_extract.extractors.crawl4ai_extractor import Crawl4AIExtractor
 
-        asyncio.create_task(
-            Crawl4AIExtractor().extract_async(
-                url, timeout_seconds=min(request.timeout_seconds, settings.max_timeout_seconds)
-            )
+        browser_result = await Crawl4AIExtractor().extract_async(
+            url, timeout_seconds=min(request.timeout_seconds, settings.max_timeout_seconds)
         )
-        # Note: in a real async context this should be awaited from an async caller.
-        # Since _extract_html is synchronous, we document that browser extraction
-        # should be triggered from the async pipeline layer.
-        warnings.append(
-            "Browser rendering requested but pipeline called synchronously. "
-            "Use render_js with async pipeline path."
-        )
+        if not is_content_poor(browser_result.text):
+            return browser_result
+        warnings.extend(browser_result.warnings)
 
-    if request.render_js == RenderJs.always and not settings.browser_enabled:
+    if request.render_js in (RenderJs.auto, RenderJs.always) and not settings.browser_enabled:
         warnings.append(
-            "render_js=always requested but LOCAL_EXTRACT_BROWSER_ENABLED=false. "
+            "render_js requested but LOCAL_EXTRACT_BROWSER_ENABLED=false. "
             "Set LOCAL_EXTRACT_BROWSER_ENABLED=true and use the browser Docker profile."
         )
 

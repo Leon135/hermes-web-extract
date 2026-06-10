@@ -69,7 +69,7 @@ class Settings(BaseSettings):
 
         return (
             f"hermes-local-web-extract/{__version__} "
-            "(+https://github.com/gopalasubramanium/hermes-local-web-extract)"
+            "(+https://github.com/gopalasubramanium/web_extract)"
         )
 
 

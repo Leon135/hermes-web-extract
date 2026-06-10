@@ -1,11 +1,21 @@
+# Stage 1: build — compiles lxml and other C extensions, then discards gcc
+FROM python:3.12-slim AS builder
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libxml2-dev libxslt1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+
+# Stage 2: runtime — no compiler, smaller attack surface
 FROM python:3.12-slim
 
-# Install OS packages needed for lxml and other compiled extensions
+# Runtime shared libraries needed by lxml (no compiler required)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        gcc \
-        libxml2 \
-        libxslt1.1 \
+    && apt-get install -y --no-install-recommends libxml2 libxslt1.1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -14,9 +24,8 @@ RUN groupadd --gid 1001 appgroup \
 
 WORKDIR /app
 
-# Install Python dependencies before copying source for better layer caching
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy compiled dependencies from builder stage
+COPY --from=builder /install /usr/local
 
 # Copy application source
 COPY src/ ./src/

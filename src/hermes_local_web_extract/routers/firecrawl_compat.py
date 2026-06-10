@@ -129,12 +129,10 @@ async def scrape(
 
     response = FirecrawlScrapeResponse(success=True, data=data)
 
-    warnings = (
-        (result.warnings or []) + unsupported
-        and [f"Unsupported formats ignored: {unsupported}"]
-        or []
-    )
-    if warnings:
-        logger.debug("Firecrawl-compat warnings: %s", warnings)
+    all_warnings = list(result.warnings or [])
+    if unsupported:
+        all_warnings.append(f"Unsupported formats ignored: {unsupported}")
+    if all_warnings:
+        logger.debug("Firecrawl-compat warnings: %s", all_warnings)
 
     return JSONResponse(content=response.model_dump())
