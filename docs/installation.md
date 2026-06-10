@@ -8,7 +8,7 @@
 ## Option 1: Docker Compose (recommended)
 
 ```bash
-git clone https://github.com/gopalasubramanium/hermes-local-web-extract.git
+git clone https://github.com/gopalasubramanium/web_extract.git
 cd hermes-local-web-extract
 cp .env.example .env
 docker compose up -d
@@ -20,7 +20,7 @@ The service starts on port 8090. To change the port, edit `LOCAL_EXTRACT_PORT` i
 ## Option 2: install.sh
 
 ```bash
-git clone https://github.com/gopalasubramanium/hermes-local-web-extract.git
+git clone https://github.com/gopalasubramanium/web_extract.git
 cd hermes-local-web-extract
 bash install.sh
 ```
@@ -32,7 +32,7 @@ The script checks for Docker, creates `.env` from `.env.example` if missing, bui
 Requires Python 3.12+.
 
 ```bash
-git clone https://github.com/gopalasubramanium/hermes-local-web-extract.git
+git clone https://github.com/gopalasubramanium/web_extract.git
 cd hermes-local-web-extract
 python3 -m venv .venv
 source .venv/bin/activate

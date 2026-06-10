@@ -28,7 +28,7 @@ See [docs/limitations.md](docs/limitations.md) for the full list.
 ## Quick start
 
 ```bash
-git clone https://github.com/gopalasubramanium/hermes-local-web-extract.git
+git clone https://github.com/gopalasubramanium/web_extract.git
 cd hermes-local-web-extract
 cp .env.example .env
 docker compose up -d
