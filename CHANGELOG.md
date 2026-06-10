@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-06-11
+
+### Fixed
+- Extraction returned garbled binary content: the fetcher advertised `Accept-Encoding: gzip, br`
+  (Brotli) but `brotli` was not installed, causing servers to send Brotli-compressed responses
+  that httpx could not decode. Removed the manual `Accept-Encoding` override so httpx only
+  advertises encodings it can decompress, and added `brotli>=1.1.0` as a dependency.
+
 ## [0.2.1] - 2026-06-11
 
 ### Fixed
