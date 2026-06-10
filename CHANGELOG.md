@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Brotli) but `brotli` was not installed, causing servers to send Brotli-compressed responses
   that httpx could not decode. Removed the manual `Accept-Encoding` override so httpx only
   advertises encodings it can decompress, and added `brotli>=1.1.0` as a dependency.
+- Health endpoints reported version `0.1.0`: `__init__.py` and `pyproject.toml` were never
+  updated past the initial release.
 
 ## [0.2.1] - 2026-06-11
 
