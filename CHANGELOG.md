@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-11
+
+### Fixed
+- Container failed to start with `ModuleNotFoundError: No module named 'hermes_local_web_extract'`:
+  the Dockerfile copied `src/` into the image but never installed the package, so uvicorn
+  could not import it. The builder stage now runs `pip install --no-deps .` after installing
+  dependencies.
+
 ## [0.2.0] - 2026-06-11
 
 ### Security
