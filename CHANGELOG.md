@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-11
+
+### Security
+- Fixed relative and protocol-relative redirect SSRF bypass: `Location: /path` headers are
+  now resolved against the current URL via `urljoin` before SSRF validation.
+- Fixed zero DNS result bypass: an empty `getaddrinfo` response no longer silently skips
+  SSRF checks; raises `InvalidURLError` instead.
+- Removed URL from `FetchTimeoutError` messages to prevent token leakage via intermediate
+  redirect URLs appearing in error responses.
+- Converted Dockerfile to a multi-stage build: gcc and build headers are present only in
+  the builder stage and are not shipped in the runtime image.
+
+### Fixed
+- Browser extraction path (`pipeline.py`): `asyncio.create_task()` in a sync helper was
+  fire-and-forget and never awaited. Made `_extract_html` a proper `async def` and awaited
+  the Crawl4AI call.
+- `html_trafilatura.py`: `result.sitename` set a dynamic attribute that was never read by
+  the pipeline. Fixed to `result.site_name`.
+- `firecrawl_compat.py`: Python `and`/`or` operator precedence silently discarded
+  `result.warnings`. Replaced with explicit list building.
+- `pyproject.toml`: wrong setuptools build backend (`setuptools.backends.legacy:build` →
+  `setuptools.build_meta`).
+- Stale repo URLs in `pyproject.toml` and user-agent string: updated from
+  `hermes-local-web-extract` to `web_extract`.
+- `README.md`, `docs/installation.md`: `cd hermes-local-web-extract` failed because
+  `git clone` creates a `web_extract` directory.
+
+### Tests
+- Added `tests/test_redirect_security.py` (9 tests): `resolve_redirect()` unit tests;
+  API-level SSRF-via-redirect blocked for private IP, loopback, and cloud metadata
+  endpoint; relative redirect to public URL allowed; too-many-redirects → `FETCH_ERROR`.
+- Added `tests/test_edge_cases.py` (6 tests): zero DNS results, timeout message does not
+  leak URL, `text/plain` extraction, 404/503 status codes surfaced in metadata, unsupported
+  Firecrawl formats silently ignored.
+- Total: 71 tests (up from 56), all offline.
+
 ## [0.1.0] - 2024-01-01
 
 ### Added
